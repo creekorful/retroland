@@ -3,13 +3,13 @@ use sfml::window::{Event, Style};
 
 fn main() {
     let mut window =
-        RenderWindow::new((800, 600), "Retroland", Style::DEFAULT, &Default::default());
+        RenderWindow::new((1920, 1080), "Retroland", Style::DEFAULT, &Default::default());
+    window.set_vertical_sync_enabled(true);
 
     while window.is_open() {
         while let Some(event) = window.poll_event() {
-            match event {
-                Event::Closed => window.close(),
-                _ => {}
+            if let Event::Closed = event {
+                window.close();
             }
         }
 
