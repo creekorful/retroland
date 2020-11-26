@@ -1,13 +1,13 @@
 use sfml::system::Vector2u;
 
 #[derive(Debug, PartialEq)]
-enum TileMapError {
+pub enum TileMapError {
     InvalidPosition,
     InvalidLayer,
 }
 
 /// TileMap is the raw representation of a tile map
-struct TileMap {
+pub struct TileMap {
     /// the map tiles, the first vector is the layer, the second is the tiles in row major order
     tiles: Vec<Vec<u32>>,
     /// the tile map size
@@ -18,7 +18,7 @@ impl TileMap {
     /// Create a new tile map of given size, with given number of layers
     /// The initial layers will be fill with 1 (grass)
     /// the others will be fill with 0 (air)
-    fn new<T: Into<Vector2u>>(size: T, nb_layers: u32) -> Self {
+    pub fn new<T: Into<Vector2u>>(size: T, nb_layers: u32) -> Self {
         let size = size.into();
         let mut tiles = Vec::with_capacity(nb_layers as usize);
 
@@ -33,7 +33,7 @@ impl TileMap {
 
     /// Retrieve the tile at given position on given layer
     /// this will return None if the position / layers doesn't exist
-    fn get_tile<T: Into<Vector2u>>(&self, position: T, layer: u32) -> Option<u32> {
+    pub fn get_tile<T: Into<Vector2u>>(&self, position: T, layer: u32) -> Option<u32> {
         let index = self.compute_index(position.into())?;
 
         self.tiles
@@ -44,7 +44,7 @@ impl TileMap {
 
     /// Set the tile at given position and layer
     /// this operation will fails if the position / layer doesn't exist
-    fn set_tile<T: Into<Vector2u>>(
+    pub fn set_tile<T: Into<Vector2u>>(
         &mut self,
         position: T,
         layer: u32,
@@ -75,7 +75,7 @@ impl TileMap {
 
 #[cfg(test)]
 mod tests {
-    use crate::tilemap::{TileMap, TileMapError};
+    use super::*;
 
     #[test]
     fn test_tile_map_new() {
