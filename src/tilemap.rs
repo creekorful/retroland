@@ -22,10 +22,23 @@ impl TileMap {
             tiles.push(vec![0; (size.x * size.y) as usize]);
         }
 
-        TileMap {
-            tiles,
-            size
+        TileMap { tiles, size }
+    }
+
+    /// Retrieve the tile at given position on given layer
+    /// this will return None if the position / layers doesn't exist
+    fn get_tile<T: Into<Vector2u>>(&self, position: T, layer: u32) -> Option<u32> {
+        let position = position.into();
+
+        // Validate input
+        if position.x >= self.size.x || position.y >= self.size.y {
+            return None;
         }
+
+        self.tiles
+            .get(layer as usize)
+            .and_then(|v| v.get((position.x + (position.y * self.size.x)) as usize))
+            .copied()
     }
 }
 
@@ -52,5 +65,23 @@ mod tests {
         for i in 0..200 {
             assert_eq!(tile_map.tiles[1][i], 0);
         }
+    }
+
+    #[test]
+    fn test_tile_map_get_tile() {
+        let tile_map = TileMap::new((20, 10), 2);
+
+        for layer in 0..2 {
+            for y in 0..10 {
+                for x in 0..20 {
+                    let expected_value = if layer == 0 { 1 } else { 0 };
+                    assert_eq!(tile_map.get_tile((x, y), layer).unwrap(), expected_value);
+                }
+            }
+        }
+
+        // Make sure access to non-existing value returns None
+        assert!(tile_map.get_tile((30, 5), 0).is_none()); // position not valid
+        assert!(tile_map.get_tile((0, 0), 22).is_none()); // layer doesn't exist
     }
 }
