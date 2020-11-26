@@ -102,7 +102,25 @@ mod tests {
         assert_eq!(renderer.tiles.len(), 25);
         assert_eq!(
             renderer.tiles.get(0).unwrap().size(),
-            Vector2f::new(216.0, 216.0) // We want a 5x5 viewport, therefore size will be 1080/5
+            (216.0, 216.0).into() // We want a 5x5 viewport, therefore size will be 1080/5
         );
+    }
+
+    #[test]
+    fn test_tile_map_renderer_move() {
+        let tile_map = TileMap::new((5, 5), 1);
+        let mut renderer = TileMapRenderer::new(
+            &tile_map,
+            (1920, 1080),
+            (5, 5),
+            View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
+        );
+
+        assert_eq!(renderer.view.size(), (10.0, 10.0).into());
+        assert_eq!(renderer.view.center(), (0.0, 0.0).into());
+
+        renderer.move_(Vector2f::new(10.0, 0.0));
+
+        assert_eq!(renderer.view.center(), (10.0, 0.0).into());
     }
 }
