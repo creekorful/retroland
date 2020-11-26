@@ -1,5 +1,11 @@
 use sfml::system::Vector2u;
 
+#[derive(Debug, PartialEq)]
+enum TileMapError {
+    InvalidPosition,
+    InvalidLayer,
+}
+
 /// TileMap is the raw representation of a tile map
 struct TileMap {
     /// the map tiles, the first vector is the layer, the second is the tiles in row major order
@@ -43,15 +49,14 @@ impl TileMap {
         position: T,
         layer: u32,
         tile: u32,
-    ) -> Result<(), String> {
-        // TODO real error management
+    ) -> Result<(), TileMapError> {
         let index = self
             .compute_index(position.into())
-            .ok_or_else(|| "invalid position".to_string())?;
+            .ok_or(TileMapError::InvalidPosition)?;
 
         self.tiles
             .get_mut(layer as usize)
-            .ok_or_else(|| "invalid layer".into())
+            .ok_or(TileMapError::InvalidLayer)
             .map(|v| v[index] = tile)
     }
 
@@ -70,7 +75,7 @@ impl TileMap {
 
 #[cfg(test)]
 mod tests {
-    use crate::tilemap::TileMap;
+    use crate::tilemap::{TileMap, TileMapError};
 
     #[test]
     fn test_tile_map_new() {
@@ -131,8 +136,14 @@ mod tests {
         assert_eq!(tile_map.tiles[1][29], 12);
 
         // check impossible access
-        assert!(tile_map.set_tile((0, 0), 10, 12).is_err());
-        assert!(tile_map.set_tile((70, 0), 1, 12).is_err());
+        assert_eq!(
+            tile_map.set_tile((0, 0), 10, 12).err().unwrap(),
+            TileMapError::InvalidLayer
+        );
+        assert_eq!(
+            tile_map.set_tile((70, 0), 1, 12).err().unwrap(),
+            TileMapError::InvalidPosition
+        );
     }
 
     #[test]
