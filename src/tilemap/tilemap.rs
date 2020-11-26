@@ -60,6 +60,11 @@ impl TileMap {
             .map(|v| v[index] = tile)
     }
 
+    /// Retrieve the tile map size
+    pub fn size(&self) -> Vector2u {
+        self.size
+    }
+
     /// Compute the vector index from given position
     fn compute_index<T: Into<Vector2u>>(&self, position: T) -> Option<usize> {
         let position = position.into();
@@ -149,9 +154,19 @@ mod tests {
     #[test]
     fn test_tile_map_compute_index() {
         let tile_map = TileMap::new((6, 5), 2);
+
         assert_eq!(tile_map.compute_index((0, 0)).unwrap(), 0);
         assert_eq!(tile_map.compute_index((1, 1)).unwrap(), 7);
         assert_eq!(tile_map.compute_index((5, 4)).unwrap(), 29);
         assert!(tile_map.compute_index((70, 0)).is_none());
+    }
+
+    #[test]
+    fn test_tile_map_size() {
+        let tile_map = TileMap::new((20, 10), 2);
+
+        let size = tile_map.size();
+        assert_eq!(size.x, 20);
+        assert_eq!(size.y, 10);
     }
 }

@@ -1,5 +1,5 @@
-pub mod tilemap;
 pub mod renderer;
+pub mod tilemap;
 
-pub use tilemap::*;
 pub use renderer::*;
+pub use tilemap::*;
