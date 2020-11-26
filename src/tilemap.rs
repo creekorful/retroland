@@ -28,6 +28,35 @@ impl TileMap {
     /// Retrieve the tile at given position on given layer
     /// this will return None if the position / layers doesn't exist
     fn get_tile<T: Into<Vector2u>>(&self, position: T, layer: u32) -> Option<u32> {
+        let index = self.compute_index(position.into())?;
+
+        self.tiles
+            .get(layer as usize)
+            .and_then(|v| v.get(index))
+            .copied()
+    }
+
+    /// Set the tile at given position and layer
+    /// this operation will fails if the position / layer doesn't exist
+    fn set_tile<T: Into<Vector2u>>(
+        &mut self,
+        position: T,
+        layer: u32,
+        tile: u32,
+    ) -> Result<(), String> {
+        // TODO real error management
+        let index = self
+            .compute_index(position.into())
+            .ok_or_else(|| "invalid position".to_string())?;
+
+        self.tiles
+            .get_mut(layer as usize)
+            .ok_or_else(|| "invalid layer".into())
+            .map(|v| v[index] = tile)
+    }
+
+    /// Compute the vector index from given position
+    fn compute_index<T: Into<Vector2u>>(&self, position: T) -> Option<usize> {
         let position = position.into();
 
         // Validate input
@@ -35,10 +64,7 @@ impl TileMap {
             return None;
         }
 
-        self.tiles
-            .get(layer as usize)
-            .and_then(|v| v.get((position.x + (position.y * self.size.x)) as usize))
-            .copied()
+        Some((position.x + position.y * self.size.x) as usize)
     }
 }
 
@@ -83,5 +109,38 @@ mod tests {
         // Make sure access to non-existing value returns None
         assert!(tile_map.get_tile((30, 5), 0).is_none()); // position not valid
         assert!(tile_map.get_tile((0, 0), 22).is_none()); // layer doesn't exist
+    }
+
+    #[test]
+    fn test_tile_map_set_tile() {
+        let mut tile_map = TileMap::new((6, 5), 2);
+
+        assert!(tile_map.set_tile((0, 0), 0, 12).is_ok());
+        assert_eq!(tile_map.tiles[0][0], 12);
+        assert!(tile_map.set_tile((0, 0), 1, 12).is_ok());
+        assert_eq!(tile_map.tiles[1][0], 12);
+
+        assert!(tile_map.set_tile((1, 1), 0, 12).is_ok());
+        assert_eq!(tile_map.tiles[0][7], 12);
+        assert!(tile_map.set_tile((1, 1), 1, 12).is_ok());
+        assert_eq!(tile_map.tiles[1][7], 12);
+
+        assert!(tile_map.set_tile((5, 4), 0, 12).is_ok());
+        assert_eq!(tile_map.tiles[0][29], 12);
+        assert!(tile_map.set_tile((5, 4), 1, 12).is_ok());
+        assert_eq!(tile_map.tiles[1][29], 12);
+
+        // check impossible access
+        assert!(tile_map.set_tile((0, 0), 10, 12).is_err());
+        assert!(tile_map.set_tile((70, 0), 1, 12).is_err());
+    }
+
+    #[test]
+    fn test_tile_map_compute_index() {
+        let tile_map = TileMap::new((6, 5), 2);
+        assert_eq!(tile_map.compute_index((0, 0)).unwrap(), 0);
+        assert_eq!(tile_map.compute_index((1, 1)).unwrap(), 7);
+        assert_eq!(tile_map.compute_index((5, 4)).unwrap(), 29);
+        assert!(tile_map.compute_index((70, 0)).is_none());
     }
 }
