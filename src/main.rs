@@ -1,9 +1,9 @@
 use sfml::graphics::{Color, RenderTarget, RenderWindow};
 use sfml::system::{Clock, Vector2f};
+use sfml::window::mouse::Button;
 use sfml::window::{Event, Key, Style};
 
 use crate::tilemap::{TileMap, TileMapRenderer};
-use sfml::window::mouse::Button;
 
 mod tilemap;
 
@@ -16,7 +16,7 @@ fn main() {
     );
     window.set_vertical_sync_enabled(true);
 
-    let tile_map = TileMap::new((30, 20), 1);
+    let mut tile_map = TileMap::new((30, 20), 1);
 
     let mut viewport_size = (15, 15).into();
     let mut renderer = TileMapRenderer::new(
@@ -53,22 +53,20 @@ fn main() {
                 }
 
                 // Re create the renderer with updated details
-                // TODO: update to prevent overhead?
                 if code == Key::Add || code == Key::Subtract {
-                    renderer = TileMapRenderer::new(
-                        &tile_map,
-                        window.size(),
-                        viewport_size,
-                        renderer.view().clone(),
-                    );
+                    renderer.update(&tile_map, window.size(), viewport_size);
                 }
             }
 
             // Manage click event
             if Button::Left.is_pressed() {
                 let world_pos = window.map_pixel_to_coords_current_view(window.mouse_position());
-                let map_position = renderer.get_tile_position(world_pos).unwrap();
-                println!("map position x: {}, y: {}", map_position.x, map_position.y);
+                if let Some(map_position) = renderer.get_tile_position(world_pos) {
+                    tile_map.set_tile(map_position, 0, 2).unwrap();
+
+                    // update the renderer
+                    renderer.update(&tile_map, window.size(), viewport_size);
+                }
             }
 
             // Not using key pressed event cause we need to be notified
