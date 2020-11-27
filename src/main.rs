@@ -4,10 +4,16 @@ use sfml::window::mouse::Button;
 use sfml::window::{Event, Key, Style};
 
 use crate::tilemap::{TileMap, TileMapRenderer};
+use std::convert::TryFrom;
+use std::env;
+use std::fs::File;
 
 mod tilemap;
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    let save_file = args.get(1);
+
     let mut window = RenderWindow::new(
         (1920, 1080),
         "Retroland",
@@ -17,6 +23,13 @@ fn main() {
     window.set_vertical_sync_enabled(true);
 
     let mut tile_map = TileMap::new((30, 20), 1);
+    // Try to load tile map from file
+    if let Some(save_file) = save_file {
+        let file = File::open(save_file);
+        if let Ok(file) = file {
+            tile_map = TileMap::try_from(file).unwrap();
+        }
+    }
 
     let mut viewport_size = (15, 15).into();
     let mut renderer = TileMapRenderer::new(
@@ -38,7 +51,7 @@ fn main() {
                 window.close();
             }
 
-            if let Event::KeyPressed { code, .. } = event {
+            if let Event::KeyPressed { code, ctrl, .. } = event {
                 match code {
                     // Zoom control
                     Key::Add => {
@@ -59,6 +72,16 @@ fn main() {
                     }
                     Key::Num3 => {
                         tile_id = 3;
+                    }
+                    // Other controls
+                    Key::S => {
+                        if ctrl {
+                            if let Some(save_file) = save_file {
+                                let file = File::create(save_file).unwrap();
+                                tile_map.write(&file).unwrap();
+                            }
+                            continue; // no further processing
+                        }
                     }
                     _ => {}
                 }

@@ -1,17 +1,35 @@
+use serde::{Deserialize, Serialize};
 use sfml::system::Vector2u;
+use std::convert::TryFrom;
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Debug, PartialEq)]
 pub enum TileMapError {
     InvalidPosition,
     InvalidLayer,
+    WriteError,
+    ReadError,
+}
+
+// Allow serde serialization / deserialization of Vector2u
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "Vector2u")]
+struct Vector2uDef {
+    x: u32,
+    y: u32,
 }
 
 /// TileMap is the raw representation of a tile map
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct TileMap {
     /// the map tiles, the first vector is the layer, the second is the tiles in row major order
     tiles: Vec<Vec<u32>>,
     /// the tile map size
+    #[serde(with = "Vector2uDef")]
     size: Vector2u,
+    /// The number of layers
+    nb_layers: u32,
 }
 
 impl TileMap {
@@ -28,7 +46,11 @@ impl TileMap {
             tiles.push(vec![0; (size.x * size.y) as usize]);
         }
 
-        TileMap { tiles, size }
+        TileMap {
+            tiles,
+            size,
+            nb_layers,
+        }
     }
 
     /// Retrieve the tile at given position on given layer
@@ -65,6 +87,14 @@ impl TileMap {
         self.size
     }
 
+    /// Write the tile map to given writer
+    pub fn write(&self, mut writer: impl Write) -> Result<(), TileMapError> {
+        let bytes: Vec<u8> = bincode::serialize(&self).map_err(|_| TileMapError::WriteError)?;
+        writer
+            .write_all(&bytes)
+            .map_err(|_| TileMapError::WriteError)
+    }
+
     /// Compute the vector index from given position
     fn compute_index<T: Into<Vector2u>>(&self, position: T) -> Option<usize> {
         let position = position.into();
@@ -75,6 +105,14 @@ impl TileMap {
         }
 
         Some((position.x + position.y * self.size.x) as usize)
+    }
+}
+
+impl TryFrom<File> for TileMap {
+    type Error = TileMapError;
+
+    fn try_from(value: File) -> Result<Self, Self::Error> {
+        bincode::deserialize_from(value).map_err(|_| TileMapError::ReadError)
     }
 }
 
@@ -89,6 +127,7 @@ mod tests {
         assert_eq!(tile_map.tiles.len(), 2);
         assert_eq!(tile_map.size.x, 20);
         assert_eq!(tile_map.size.y, 10);
+        assert_eq!(tile_map.nb_layers, 2);
         assert_eq!(tile_map.tiles.get(0).unwrap().len(), 20 * 10);
         assert_eq!(tile_map.tiles.get(1).unwrap().len(), 20 * 10);
 
