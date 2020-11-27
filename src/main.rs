@@ -2,8 +2,8 @@ mod tilemap;
 
 use crate::tilemap::{TileMap, TileMapRenderer};
 use sfml::graphics::{Color, RenderTarget, RenderWindow};
-use sfml::system::Vector2f;
-use sfml::window::{Event, Style};
+use sfml::system::{Clock, Vector2f};
+use sfml::window::{Event, Key, Style};
 
 fn main() {
     let mut window = RenderWindow::new(
@@ -22,26 +22,33 @@ fn main() {
         window.default_view().to_owned(),
     );
 
-    let mut last_mouse_pos = Vector2f::default();
+    let mut delta_clock = Clock::default();
     while window.is_open() {
+        let delta_time = delta_clock.restart();
+        let move_factor = 4000.0 * delta_time.as_seconds();
+
+        let mut offset = Vector2f::default();
         while let Some(event) = window.poll_event() {
             if let Event::Closed = event {
                 window.close();
             }
 
-            // Manage mouse 'drag' event (to move on map)
-            if let Event::MouseButtonPressed { x, y, button } = event {
-                last_mouse_pos = window.map_pixel_to_coords_current_view((x, y).into());
+            // Not using key pressed event cause we need to be notified
+            // when the key is hold down
+            if Key::Z.is_pressed() {
+                offset.y = -move_factor;
             }
-            if let Event::MouseButtonReleased { x, y, button } = event {
-                // Compute the distance between last and now
-                let distance = Vector2f::new(x as f32 - last_mouse_pos.x, y as f32 - last_mouse_pos.y);
-                println!("distance x: {}, y: {}", distance.x, distance.y);
-                renderer.move_(-Vector2f::new(distance.x, distance.y));
-
-                last_mouse_pos = window.map_pixel_to_coords_current_view((x, y).into());
+            if Key::Q.is_pressed() {
+                offset.x = -move_factor;
+            }
+            if Key::S.is_pressed() {
+                offset.y = move_factor;
+            }
+            if Key::D.is_pressed() {
+                offset.x = move_factor;
             }
         }
+        renderer.move_(offset);
 
         window.clear(Color::BLACK);
         window.draw(&renderer);
