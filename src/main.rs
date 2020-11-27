@@ -13,6 +13,8 @@ mod tilemap;
 fn main() {
     let args: Vec<String> = env::args().collect();
     let save_file = args.get(1);
+    let map_width = args.get(2).map(|v| v.parse().unwrap()).unwrap_or(30);
+    let map_height = args.get(3).map(|v| v.parse().unwrap()).unwrap_or(20);
 
     let mut window = RenderWindow::new(
         (1920, 1080),
@@ -22,7 +24,7 @@ fn main() {
     );
     window.set_vertical_sync_enabled(true);
 
-    let mut tile_map = TileMap::new((30, 20), 1);
+    let mut tile_map = TileMap::new((map_width, map_height), 1);
     // Try to load tile map from file
     if let Some(save_file) = save_file {
         let file = File::open(save_file);
