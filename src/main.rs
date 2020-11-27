@@ -14,11 +14,11 @@ fn main() {
     );
     window.set_vertical_sync_enabled(true);
 
-    let tile_map = TileMap::new((10, 10), 1);
+    let tile_map = TileMap::new((30, 20), 1);
     let mut renderer = TileMapRenderer::new(
         &tile_map,
         window.size(),
-        (5, 5).into(),
+        (15, 15).into(),
         window.default_view().to_owned(),
     );
 
