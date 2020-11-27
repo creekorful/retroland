@@ -1,9 +1,10 @@
 use sfml::graphics::{
     Color, Drawable, RectangleShape, RenderStates, RenderTarget, Shape, Transformable, View,
 };
-use sfml::system::{SfBox, Vector2f, Vector2i, Vector2u};
+use sfml::system::{SfBox, Vector2f, Vector2u};
 
 use crate::tilemap::TileMap;
+use std::ops::Sub;
 
 /// Tile map renderer is used to render a tile map on the screen
 pub struct TileMapRenderer<'s> {
@@ -75,17 +76,17 @@ impl<'s> TileMapRenderer<'s> {
 
     /// Translate world position to tile position
     pub fn get_tile_position<O: Into<Vector2f>>(&self, world_pos: O) -> Option<Vector2u> {
-        println!(
-            "view center x: {}, y: {}",
-            self.view_center.x, self.view_center.y
-        );
-        println!(
-            "current view center x: {}, y: {}",
-            self.view.center().x,
-            self.view.center().y
+        // Compute the offset between initial map view center and current one
+        // this allows us to compute the 'real' tile position if the map has been moved
+        let view_offset = Vector2f::new(
+            self.view_center.x - self.view.center().x,
+            self.view_center.y - self.view.center().y,
         );
 
+        // Apply the offset to retrieve the world pos relative to the tile map
         let world_pos = world_pos.into();
+        let world_pos = world_pos.sub(view_offset);
+
         let position = Vector2u::new(
             world_pos.x as u32 / self.tile_size as u32,
             world_pos.y as u32 / self.tile_size as u32,
@@ -180,5 +181,12 @@ mod tests {
             Some((0, 0).into())
         );
         assert_eq!(renderer.get_tile_position((12420.0, 210.0)), None);
+
+        // Move the map and check if we are retrieving the 'real' tile position
+        renderer.move_(Vector2f::new(400.0, 200.0));
+        assert_eq!(
+            renderer.get_tile_position((420.0, 210.0)),
+            Some((3, 1).into())
+        );
     }
 }
