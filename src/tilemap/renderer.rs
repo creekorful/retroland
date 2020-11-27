@@ -27,7 +27,7 @@ impl<'s> TileMapRenderer<'s> {
         tile_map: &TileMap,
         screen_size: T,
         viewport_size: T,
-        default_view: SfBox<View>, // TODO trash and compute view?
+        default_view: SfBox<View>,
     ) -> Self {
         let mut renderer = TileMapRenderer {
             tiles: vec![],
@@ -71,7 +71,12 @@ impl<'s> TileMapRenderer<'s> {
         Some(position)
     }
 
-    /// Update the renderer using given details
+    /// Update the renderer using given tile map & display parameters
+    ///
+    /// # Arguments
+    /// - tile_map: the inner tile map details
+    /// - screen_size: the screen size in pixel
+    /// - viewport_size: the expected viewport size (will affect number of tiles displayed on screen)
     pub fn update<T: Into<Vector2u>>(
         &mut self,
         tile_map: &TileMap,

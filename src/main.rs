@@ -26,6 +26,7 @@ fn main() {
         window.default_view().to_owned(),
     );
 
+    let mut tile_id = 2 as u32;
     let mut delta_clock = Clock::default();
     while window.is_open() {
         let delta_time = delta_clock.restart();
@@ -37,9 +38,9 @@ fn main() {
                 window.close();
             }
 
-            // Zoom control
             if let Event::KeyPressed { code, .. } = event {
                 match code {
+                    // Zoom control
                     Key::Add => {
                         // prevent having a 0 viewport size (will cause crash)
                         if viewport_size.x != 1 {
@@ -48,6 +49,16 @@ fn main() {
                     }
                     Key::Subtract => {
                         viewport_size = (viewport_size.x + 1, viewport_size.y + 1).into();
+                    }
+                    // Tile selection control
+                    Key::Num1 => {
+                        tile_id = 1;
+                    }
+                    Key::Num2 => {
+                        tile_id = 2;
+                    }
+                    Key::Num3 => {
+                        tile_id = 3;
                     }
                     _ => {}
                 }
@@ -62,7 +73,7 @@ fn main() {
             if Button::Left.is_pressed() {
                 let world_pos = window.map_pixel_to_coords_current_view(window.mouse_position());
                 if let Some(map_position) = renderer.get_tile_position(world_pos) {
-                    tile_map.set_tile(map_position, 0, 2).unwrap();
+                    tile_map.set_tile(map_position, 0, tile_id).unwrap();
 
                     // update the renderer
                     renderer.update(&tile_map, window.size(), viewport_size);
