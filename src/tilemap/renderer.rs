@@ -1,7 +1,7 @@
 use sfml::graphics::{
     Color, Drawable, RectangleShape, RenderStates, RenderTarget, Shape, Transformable, View,
 };
-use sfml::system::{SfBox, Vector2f, Vector2u};
+use sfml::system::{SfBox, Vector2f, Vector2i, Vector2u};
 
 use crate::tilemap::TileMap;
 
@@ -9,6 +9,8 @@ use crate::tilemap::TileMap;
 pub struct TileMapRenderer<'s> {
     tiles: Vec<RectangleShape<'s>>,
     view: SfBox<View>,
+    tile_size: f32,
+    map_size: Vector2u,
 }
 
 impl<'s> TileMapRenderer<'s> {
@@ -58,6 +60,8 @@ impl<'s> TileMapRenderer<'s> {
         TileMapRenderer {
             tiles,
             view: default_view,
+            tile_size,
+            map_size: tile_map.size(),
         }
     }
 
@@ -65,6 +69,20 @@ impl<'s> TileMapRenderer<'s> {
     /// this will update the renderer inner view and 'move' the tile map
     pub fn move_<O: Into<Vector2f>>(&mut self, offset: O) {
         self.view.move_(offset)
+    }
+
+    /// Translate world position to tile position
+    pub fn get_tile_position<O: Into<Vector2f>>(&self, world_pos: O) -> Option<Vector2u> {
+        let world_pos = world_pos.into();
+        let position = Vector2u::new(
+            world_pos.x as u32 / self.tile_size as u32,
+            world_pos.y as u32 / self.tile_size as u32,
+        );
+        if position.x >= self.map_size.x || position.y >= self.map_size.y {
+            return None;
+        }
+
+        Some(position)
     }
 }
 
@@ -100,10 +118,7 @@ mod tests {
         );
 
         assert_eq!(renderer.tiles.len(), 25);
-        assert_eq!(
-            renderer.tiles.get(0).unwrap().size(),
-            (216.0, 216.0).into() // We want a 5x5 viewport, therefore size will be 1080/5
-        );
+        assert_eq!(renderer.tile_size, 216.0); // We want a 5x5 viewport, therefore size will be 1080/5
     }
 
     #[test]
@@ -122,5 +137,31 @@ mod tests {
         renderer.move_(Vector2f::new(10.0, 0.0));
 
         assert_eq!(renderer.view.center(), (10.0, 0.0).into());
+    }
+
+    #[test]
+    fn test_tile_map_renderer_get_tile_position() {
+        let tile_map = TileMap::new((5, 5), 1);
+        let mut renderer = TileMapRenderer::new(
+            &tile_map,
+            (1920, 1080),
+            (5, 5),
+            View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
+        );
+
+        assert_eq!(renderer.get_tile_position((0.0, 0.0)), Some((0, 0).into()));
+        assert_eq!(
+            renderer.get_tile_position((210.0, 120.0)),
+            Some((0, 0).into())
+        );
+        assert_eq!(
+            renderer.get_tile_position((420.0, 210.0)),
+            Some((1, 0).into())
+        );
+        assert_eq!(
+            renderer.get_tile_position((-420.0, 210.0)),
+            Some((0, 0).into())
+        );
+        assert_eq!(renderer.get_tile_position((12420.0, 210.0)), None);
     }
 }

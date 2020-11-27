@@ -3,6 +3,7 @@ use sfml::system::{Clock, Vector2f};
 use sfml::window::{Event, Key, Style};
 
 use crate::tilemap::{TileMap, TileMapRenderer};
+use sfml::window::mouse::Button;
 
 mod tilemap;
 
@@ -61,6 +62,13 @@ fn main() {
                         window.view().to_owned(),
                     );
                 }
+            }
+
+            // Manage click event
+            if Button::Left.is_pressed() {
+                let world_pos = window.map_pixel_to_coords_current_view(window.mouse_position());
+                let map_position = renderer.get_tile_position(world_pos).unwrap();
+                println!("map position x: {}, y: {}", map_position.x, map_position.y);
             }
 
             // Not using key pressed event cause we need to be notified
