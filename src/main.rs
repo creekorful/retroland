@@ -1,9 +1,10 @@
-mod tilemap;
-
-use crate::tilemap::{TileMap, TileMapRenderer};
 use sfml::graphics::{Color, RenderTarget, RenderWindow};
 use sfml::system::{Clock, Vector2f};
 use sfml::window::{Event, Key, Style};
+
+use crate::tilemap::{TileMap, TileMapRenderer};
+
+mod tilemap;
 
 fn main() {
     let mut window = RenderWindow::new(
@@ -15,10 +16,12 @@ fn main() {
     window.set_vertical_sync_enabled(true);
 
     let tile_map = TileMap::new((30, 20), 1);
+
+    let mut viewport_size = (15, 15).into();
     let mut renderer = TileMapRenderer::new(
         &tile_map,
         window.size(),
-        (15, 15).into(),
+        viewport_size,
         window.default_view().to_owned(),
     );
 
@@ -31,6 +34,33 @@ fn main() {
         while let Some(event) = window.poll_event() {
             if let Event::Closed = event {
                 window.close();
+            }
+
+            // Zoom control
+            if let Event::KeyPressed { code, .. } = event {
+                match code {
+                    Key::Add => {
+                        // prevent having a 0 viewport size (will cause crash)
+                        if viewport_size.x != 1 {
+                            viewport_size = (viewport_size.x - 1, viewport_size.y - 1).into();
+                        }
+                    }
+                    Key::Subtract => {
+                        viewport_size = (viewport_size.x + 1, viewport_size.y + 1).into();
+                    }
+                    _ => {}
+                }
+
+                // Re create the renderer with updated details
+                // TODO: update to prevent overhead?
+                if code == Key::Add || code == Key::Subtract {
+                    renderer = TileMapRenderer::new(
+                        &tile_map,
+                        window.size(),
+                        viewport_size,
+                        window.view().to_owned(),
+                    );
+                }
             }
 
             // Not using key pressed event cause we need to be notified

@@ -29,11 +29,11 @@ impl<'s> TileMapRenderer<'s> {
         let screen_size = screen_size.into();
         let viewport_size = viewport_size.into();
 
-        let mut tiles = Vec::new();
+        let mut tiles = Vec::with_capacity((tile_map_size.x * tile_map_size.y) as usize);
 
         // Determinate tile size to fix them on whole screen
         // this algorithm will try to display at least the expected viewport size
-        // this means that there **may** be more tiles displayed, depending on screen resolution
+        // this means that they **may** be more tiles displayed, depending on screen resolution
         let tile_width = screen_size.x / viewport_size.x;
         let tile_height = screen_size.y / viewport_size.y;
         let tile_size = if tile_width < tile_height {
