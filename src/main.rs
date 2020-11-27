@@ -59,7 +59,7 @@ fn main() {
                         &tile_map,
                         window.size(),
                         viewport_size,
-                        window.view().to_owned(),
+                        renderer.view().clone(),
                     );
                 }
             }

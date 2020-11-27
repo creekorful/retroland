@@ -9,6 +9,7 @@ use crate::tilemap::TileMap;
 pub struct TileMapRenderer<'s> {
     tiles: Vec<RectangleShape<'s>>,
     view: SfBox<View>,
+    view_center: Vector2f,
     tile_size: f32,
     map_size: Vector2u,
 }
@@ -59,6 +60,7 @@ impl<'s> TileMapRenderer<'s> {
 
         TileMapRenderer {
             tiles,
+            view_center: default_view.center(),
             view: default_view,
             tile_size,
             map_size: tile_map.size(),
@@ -73,6 +75,16 @@ impl<'s> TileMapRenderer<'s> {
 
     /// Translate world position to tile position
     pub fn get_tile_position<O: Into<Vector2f>>(&self, world_pos: O) -> Option<Vector2u> {
+        println!(
+            "view center x: {}, y: {}",
+            self.view_center.x, self.view_center.y
+        );
+        println!(
+            "current view center x: {}, y: {}",
+            self.view.center().x,
+            self.view.center().y
+        );
+
         let world_pos = world_pos.into();
         let position = Vector2u::new(
             world_pos.x as u32 / self.tile_size as u32,
@@ -83,6 +95,11 @@ impl<'s> TileMapRenderer<'s> {
         }
 
         Some(position)
+    }
+
+    /// Return a reference to the actual renderer view
+    pub fn view(&self) -> &SfBox<View> {
+        &self.view
     }
 }
 
