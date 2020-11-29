@@ -3,15 +3,13 @@ use sfml::system::{Clock, SfBox, Vector2f};
 use sfml::window::mouse::Button;
 use sfml::window::{Event, Key, Style};
 
-use crate::tilemap::{TileMap, TileMapRenderer};
+use retroland::tilemap::{TileMap, TileMapRenderer};
 use std::collections::BTreeMap;
 use std::convert::TryFrom;
 use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-
-mod tilemap;
 
 fn load_textures<P: AsRef<Path>>(
     assets_dir: P,
