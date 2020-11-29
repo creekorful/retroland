@@ -1,8 +1,13 @@
-use sfml::graphics::{Color, IntRect, RenderTarget, RenderWindow, Texture, RectangleShape, Transformable, Shape};
+mod inventory;
+
+use sfml::graphics::{
+    Color, IntRect, RectangleShape, RenderTarget, RenderWindow, Shape, Texture, Transformable,
+};
 use sfml::system::{Clock, SfBox, Vector2f};
 use sfml::window::mouse::Button;
 use sfml::window::{Event, Key, Style};
 
+use crate::inventory::Inventory;
 use retroland::tilemap::{TileMap, TileMapRenderer};
 use std::collections::BTreeMap;
 use std::convert::TryFrom;
@@ -72,10 +77,7 @@ fn main() {
 
     // Create inventory
     let mut show_inventory = false;
-    let mut inventory_bg = RectangleShape::new();
-    inventory_bg.set_position((50.0, 50.0));
-    inventory_bg.set_size(Vector2f::new((window.size().x - 50 * 2) as f32, (window.size().y - 50 * 2) as f32));
-    inventory_bg.set_fill_color(Color::rgba(44, 62, 80, 240));
+    let inventory = Inventory::new(window.size());
 
     // Create tile map
     let mut viewport_size = (15, 15).into();
@@ -130,7 +132,7 @@ fn main() {
                             }
                             continue; // no further processing
                         }
-                    },
+                    }
                     Key::E => {
                         show_inventory = !show_inventory;
                     }
@@ -174,7 +176,7 @@ fn main() {
         window.clear(Color::BLACK);
         window.draw(&renderer);
         if show_inventory {
-            window.draw(&inventory_bg);
+            window.draw(&inventory);
         }
         window.display();
     }
