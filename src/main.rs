@@ -1,14 +1,50 @@
-use sfml::graphics::{Color, RenderTarget, RenderWindow};
-use sfml::system::{Clock, Vector2f};
+use sfml::graphics::{Color, IntRect, RenderTarget, RenderWindow, Texture};
+use sfml::system::{Clock, SfBox, Vector2f};
 use sfml::window::mouse::Button;
 use sfml::window::{Event, Key, Style};
 
 use crate::tilemap::{TileMap, TileMapRenderer};
+use std::collections::BTreeMap;
 use std::convert::TryFrom;
 use std::env;
+use std::error::Error;
 use std::fs::File;
+use std::path::Path;
 
 mod tilemap;
+
+fn load_textures<P: AsRef<Path>>(
+    assets_dir: P,
+) -> Result<BTreeMap<u32, SfBox<Texture>>, Box<dyn Error>> {
+    let mut textures = BTreeMap::new();
+
+    textures.insert(
+        1,
+        Texture::from_file_with_rect(
+            &format!("{}/grass.png", assets_dir.as_ref().display()),
+            &IntRect::new(32, 0, 16, 16),
+        )
+        .ok_or_else(|| "unable to load texture".to_string())?,
+    );
+    textures.insert(
+        2,
+        Texture::from_file_with_rect(
+            &format!("{}/grass.png", assets_dir.as_ref().display()),
+            &IntRect::new(48, 0, 16, 16),
+        )
+        .ok_or_else(|| "unable to load texture".to_string())?,
+    );
+    textures.insert(
+        3,
+        Texture::from_file_with_rect(
+            &format!("{}/grass.png", assets_dir.as_ref().display()),
+            &IntRect::new(0, 0, 16, 16),
+        )
+        .ok_or_else(|| "unable to load texture".to_string())?,
+    );
+
+    Ok(textures)
+}
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -18,7 +54,7 @@ fn main() {
 
     let mut window = RenderWindow::new(
         (1920, 1080),
-        "Retroland",
+        "Retroland Editor",
         Style::DEFAULT,
         &Default::default(),
     );
@@ -33,12 +69,16 @@ fn main() {
         }
     }
 
+    // Load textures
+    let textures = load_textures("assets").expect("unable to load textures");
+
     let mut viewport_size = (15, 15).into();
     let mut renderer = TileMapRenderer::new(
         &tile_map,
         window.size(),
         viewport_size,
         window.default_view().to_owned(),
+        &textures,
     );
 
     let mut tile_id = 2 as u32;

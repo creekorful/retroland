@@ -1,9 +1,11 @@
 use sfml::graphics::{
-    Color, Drawable, RectangleShape, RenderStates, RenderTarget, Shape, Transformable, View,
+    Color, Drawable, RectangleShape, RenderStates, RenderTarget, Shape, Texture, Transformable,
+    View,
 };
 use sfml::system::{SfBox, Vector2f, Vector2u};
 
 use crate::tilemap::TileMap;
+use std::collections::BTreeMap;
 use std::ops::Sub;
 
 /// Tile map renderer is used to render a tile map on the screen
@@ -13,6 +15,7 @@ pub struct TileMapRenderer<'s> {
     original_view_center: Vector2f,
     tile_size: f32,
     map_size: Vector2u,
+    textures: &'s BTreeMap<u32, SfBox<Texture>>,
 }
 
 impl<'s> TileMapRenderer<'s> {
@@ -28,6 +31,7 @@ impl<'s> TileMapRenderer<'s> {
         screen_size: T,
         viewport_size: T,
         default_view: SfBox<View>,
+        textures: &'s BTreeMap<u32, SfBox<Texture>>,
     ) -> Self {
         let mut renderer = TileMapRenderer {
             tiles: vec![],
@@ -35,6 +39,7 @@ impl<'s> TileMapRenderer<'s> {
             view: default_view,
             tile_size: 0.0,
             map_size: Default::default(),
+            textures,
         };
         renderer.update(tile_map, screen_size, viewport_size);
 
@@ -108,14 +113,8 @@ impl<'s> TileMapRenderer<'s> {
                 tile.set_position((x as f32 * tile_size, y as f32 * tile_size));
 
                 let tile_id = tile_map.get_tile((x, y), 0).unwrap();
-                let color = match tile_id {
-                    1 => Color::GREEN,
-                    2 => Color::YELLOW,
-                    3 => Color::BLUE,
-                    _ => Color::RED,
-                };
+                tile.set_texture(self.textures.get(&tile_id).unwrap(), true); // todo error mngmt
 
-                tile.set_fill_color(color);
                 tile.set_outline_color(Color::BLACK);
                 tile.set_outline_thickness(1.0);
                 tiles.push(tile);
@@ -144,19 +143,22 @@ impl<'s> Drawable for TileMapRenderer<'s> {
 
 #[cfg(test)]
 mod tests {
-    use sfml::graphics::View;
-    use sfml::system::Vector2f;
+    use sfml::graphics::{Texture, View};
+    use sfml::system::{SfBox, Vector2f};
 
     use crate::tilemap::{TileMap, TileMapRenderer};
+    use std::collections::BTreeMap;
 
     #[test]
     fn test_tile_map_renderer_new() {
+        let textures = load_textures();
         let tile_map = TileMap::new((5, 5), 1);
         let renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
+            &textures,
         );
 
         assert_eq!(renderer.tiles.len(), 25);
@@ -166,12 +168,14 @@ mod tests {
 
     #[test]
     fn test_tile_map_renderer_move() {
+        let textures = load_textures();
         let tile_map = TileMap::new((5, 5), 1);
         let mut renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
+            &textures,
         );
 
         assert_eq!(renderer.view.size(), (10.0, 10.0).into());
@@ -184,12 +188,14 @@ mod tests {
 
     #[test]
     fn test_tile_map_renderer_get_tile_position() {
+        let textures = load_textures();
         let tile_map = TileMap::new((5, 5), 1);
         let mut renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
+            &textures,
         );
 
         assert_eq!(renderer.get_tile_position((0.0, 0.0)), Some((0, 0).into()));
@@ -217,12 +223,14 @@ mod tests {
 
     #[test]
     fn test_tile_map_renderer_update() {
+        let textures = load_textures();
         let tile_map = TileMap::new((5, 5), 1);
         let mut renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
+            &textures,
         );
 
         // Update renderer
@@ -232,5 +240,11 @@ mod tests {
         assert_eq!(renderer.tiles.len(), 100);
         assert_eq!(renderer.tile_size, 108.0); // We want a 10x10 viewport, therefore size will be 1080/10
         assert_eq!(renderer.map_size, (10, 10).into());
+    }
+
+    fn load_textures() -> BTreeMap<u32, SfBox<Texture>> {
+        let mut textures = BTreeMap::new();
+        textures.insert(1, Texture::new(16, 16).unwrap());
+        textures
     }
 }
