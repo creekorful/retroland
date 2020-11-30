@@ -105,8 +105,7 @@ impl<'s> TileMapRenderer<'s> {
             tile_height
         } as f32;
 
-        // At the moment only draw layer 0
-        for _layer in 0..tile_map.nb_layers() {
+        for layer in 0..tile_map.nb_layers() {
             let mut tiles = Vec::with_capacity((tile_map_size.x * tile_map_size.y) as usize);
             for y in 0..tile_map_size.y {
                 for x in 0..tile_map_size.x {
@@ -114,11 +113,22 @@ impl<'s> TileMapRenderer<'s> {
                     tile.set_size((tile_size, tile_size));
                     tile.set_position((x as f32 * tile_size, y as f32 * tile_size));
 
-                    let tile_id = tile_map.get_tile((x, y), 0).unwrap();
-                    tile.set_texture(self.textures.get(&tile_id).unwrap(), true); // todo error mngmt
+                    let tile_id = tile_map.get_tile((x, y), layer).unwrap();
 
-                    tile.set_outline_color(Color::BLACK);
-                    tile.set_outline_thickness(1.0);
+                    // Tile_id == 0 is transparent
+                    if tile_id == 0 {
+                        tile.set_fill_color(Color::TRANSPARENT);
+                    } else {
+                        tile.set_texture(self.textures.get(&tile_id).unwrap(), true);
+                        // todo error mngmt
+                    }
+
+                    // Grid is only applied to layer 0
+                    if layer == 0 {
+                        tile.set_outline_color(Color::BLACK);
+                        tile.set_outline_thickness(1.0);
+                    }
+
                     tiles.push(tile);
                 }
             }

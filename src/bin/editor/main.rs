@@ -19,19 +19,43 @@ fn load_textures<P: AsRef<Path>>(
 ) -> Result<BTreeMap<u32, SfBox<Texture>>, Box<dyn Error>> {
     let mut textures = BTreeMap::new();
 
-    // Load from grass.png
+    let mut idx = 0;
     for i in 0..5 {
         textures.insert(
-            i as u32,
+            idx,
             Texture::from_file_with_rect(
                 &format!("{}/grass.png", assets_dir.as_ref().display()),
                 &IntRect::new(i * 16, 0, 16, 16),
             )
             .ok_or_else(|| "unable to load texture".to_string())?,
         );
+        idx += 1;
+    }
+
+    // Start of layer 1 block
+    idx = 50;
+    for i in 0..3 {
+        textures.insert(
+            idx,
+            Texture::from_file_with_rect(
+                &format!("{}/houses.png", assets_dir.as_ref().display()),
+                &IntRect::new(i * 16, 3 * 16, 16, 16),
+            )
+            .ok_or_else(|| "unable to load texture".to_string())?,
+        );
+        idx += 1;
     }
 
     Ok(textures)
+}
+
+// TODO something better
+fn get_tile_layer(tile_id: u32) -> u32 {
+    if tile_id < 50 {
+        0
+    } else {
+        1
+    }
 }
 
 fn main() {
@@ -130,7 +154,15 @@ fn main() {
                         show_inventory = false; // hide inventory if an item has been selected
                     }
                 } else if let Some(map_position) = renderer.get_tile_position(world_pos) {
-                    tile_map.set_tile(map_position, 0, tile_id).unwrap();
+                    let layer = get_tile_layer(tile_id);
+                    tile_map
+                        .set_tile(map_position, get_tile_layer(tile_id), tile_id)
+                        .unwrap();
+
+                    if layer == 0 {
+                        // If layer is 0 then reset all tile layers on the position
+                        tile_map.set_tile(map_position, 1, 0).unwrap();
+                    }
 
                     // update the renderer
                     renderer.update(&tile_map, window.size(), viewport_size);
