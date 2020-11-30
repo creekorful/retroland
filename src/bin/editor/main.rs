@@ -48,7 +48,7 @@ fn main() {
     );
     window.set_vertical_sync_enabled(true);
 
-    let mut tile_map = TileMap::new((map_width, map_height), 1);
+    let mut tile_map = TileMap::new((map_width, map_height), 2);
     // Try to load tile map from file
     if let Some(save_file) = save_file {
         let file = File::open(save_file);

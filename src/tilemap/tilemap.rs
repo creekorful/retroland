@@ -87,6 +87,11 @@ impl TileMap {
         self.size
     }
 
+    /// Retrieve the number of layers
+    pub fn nb_layers(&self) -> u32 {
+        self.nb_layers
+    }
+
     /// Write the tile map to given writer
     pub fn write(&self, mut writer: impl Write) -> Result<(), TileMapError> {
         let bytes: Vec<u8> = bincode::serialize(&self).map_err(|_| TileMapError::WriteError)?;
@@ -207,5 +212,13 @@ mod tests {
         let size = tile_map.size();
         assert_eq!(size.x, 20);
         assert_eq!(size.y, 10);
+    }
+
+    #[test]
+    fn test_tile_nb_layers() {
+        let tile_map = TileMap::new((20, 10), 2);
+
+        assert_eq!(tile_map.nb_layers, 2);
+        assert_eq!(tile_map.nb_layers(), 2);
     }
 }

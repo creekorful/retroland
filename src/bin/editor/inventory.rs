@@ -111,10 +111,10 @@ mod tests {
             Vector2f::new(1920.0 - 100.0, 1080.0 - 100.0)
         );
         assert_eq!(inventory.items.len(), 3);
-        assert_eq!(
-            inventory.items.get(0).unwrap().size(),
-            Vector2f::new(100.0, 100.0)
-        );
+
+        let size = inventory.items.get(0).unwrap().size();
+        assert_eq!(size.x as u32, 121);
+        assert_eq!(size.y as u32, 121);
         assert_eq!(*inventory.items_id.get(&0).unwrap(), 10);
         assert_eq!(*inventory.items_id.get(&1).unwrap(), 22);
         assert_eq!(*inventory.items_id.get(&2).unwrap(), 34);

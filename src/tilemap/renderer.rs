@@ -10,7 +10,7 @@ use std::ops::Sub;
 
 /// Tile map renderer is used to render a tile map on the screen
 pub struct TileMapRenderer<'s> {
-    tiles: Vec<RectangleShape<'s>>,
+    layers: Vec<Vec<RectangleShape<'s>>>,
     view: SfBox<View>,
     original_view_center: Vector2f,
     tile_size: f32,
@@ -34,7 +34,7 @@ impl<'s> TileMapRenderer<'s> {
         textures: &'s BTreeMap<u32, SfBox<Texture>>,
     ) -> Self {
         let mut renderer = TileMapRenderer {
-            tiles: vec![],
+            layers: vec![],
             original_view_center: default_view.center(),
             view: default_view,
             tile_size: 0.0,
@@ -92,7 +92,7 @@ impl<'s> TileMapRenderer<'s> {
         let screen_size = screen_size.into();
         let viewport_size = viewport_size.into();
 
-        let mut tiles = Vec::with_capacity((tile_map_size.x * tile_map_size.y) as usize);
+        let mut layers = Vec::with_capacity(tile_map.nb_layers() as usize);
 
         // Determinate tile size to fix them on whole screen
         // this algorithm will try to display at least the expected viewport size
@@ -106,23 +106,27 @@ impl<'s> TileMapRenderer<'s> {
         } as f32;
 
         // At the moment only draw layer 0
-        for y in 0..tile_map_size.y {
-            for x in 0..tile_map_size.x {
-                let mut tile = RectangleShape::new();
-                tile.set_size((tile_size, tile_size));
-                tile.set_position((x as f32 * tile_size, y as f32 * tile_size));
+        for _layer in 0..tile_map.nb_layers() {
+            let mut tiles = Vec::with_capacity((tile_map_size.x * tile_map_size.y) as usize);
+            for y in 0..tile_map_size.y {
+                for x in 0..tile_map_size.x {
+                    let mut tile = RectangleShape::new();
+                    tile.set_size((tile_size, tile_size));
+                    tile.set_position((x as f32 * tile_size, y as f32 * tile_size));
 
-                let tile_id = tile_map.get_tile((x, y), 0).unwrap();
-                tile.set_texture(self.textures.get(&tile_id).unwrap(), true); // todo error mngmt
+                    let tile_id = tile_map.get_tile((x, y), 0).unwrap();
+                    tile.set_texture(self.textures.get(&tile_id).unwrap(), true); // todo error mngmt
 
-                tile.set_outline_color(Color::BLACK);
-                tile.set_outline_thickness(1.0);
-                tiles.push(tile);
+                    tile.set_outline_color(Color::BLACK);
+                    tile.set_outline_thickness(1.0);
+                    tiles.push(tile);
+                }
             }
+            layers.push(tiles);
         }
 
         self.tile_size = tile_size;
-        self.tiles = tiles;
+        self.layers = layers;
         self.map_size = tile_map_size;
     }
 }
@@ -134,8 +138,10 @@ impl<'s> Drawable for TileMapRenderer<'s> {
         states: RenderStates<'texture, 'shader, 'shader_texture>,
     ) {
         target.set_view(&self.view);
-        for tile in &self.tiles {
-            target.draw_with_renderstates(tile, states);
+        for tiles in &self.layers {
+            for tile in tiles {
+                target.draw_with_renderstates(tile, states);
+            }
         }
         target.set_view(&target.default_view().to_owned());
     }
@@ -161,7 +167,8 @@ mod tests {
             &textures,
         );
 
-        assert_eq!(renderer.tiles.len(), 25);
+        assert_eq!(renderer.layers.len(), 1);
+        assert_eq!(renderer.layers.get(0).unwrap().len(), 25);
         assert_eq!(renderer.tile_size, 216.0); // We want a 5x5 viewport, therefore size will be 1080/5
         assert_eq!(renderer.map_size, (5, 5).into());
     }
@@ -237,7 +244,8 @@ mod tests {
         let tile_map = TileMap::new((10, 10), 1);
         renderer.update(&tile_map, (1920, 1080), (10, 10));
 
-        assert_eq!(renderer.tiles.len(), 100);
+        assert_eq!(renderer.layers.len(), 1);
+        assert_eq!(renderer.layers.get(0).unwrap().len(), 100);
         assert_eq!(renderer.tile_size, 108.0); // We want a 10x10 viewport, therefore size will be 1080/10
         assert_eq!(renderer.map_size, (10, 10).into());
     }
