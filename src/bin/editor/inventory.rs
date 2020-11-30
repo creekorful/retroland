@@ -33,6 +33,7 @@ impl<'s> Inventory<'s> {
         let mut items = Vec::new();
         let mut x = 0;
         let mut y = 0;
+        let mut i = 0;
 
         let mut items_id = BTreeMap::new();
         for (id, texture) in textures {
@@ -54,7 +55,8 @@ impl<'s> Inventory<'s> {
             item.set_texture(texture, true);
             items.push(item);
 
-            items_id.insert(x + y, *id);
+            items_id.insert(i, *id);
+            i += 1;
 
             x += 1;
         }
@@ -110,14 +112,14 @@ mod tests {
             inventory.background.size(),
             Vector2f::new(1920.0 - 100.0, 1080.0 - 100.0)
         );
-        assert_eq!(inventory.items.len(), 3);
+        assert_eq!(inventory.items.len(), 50);
 
         let size = inventory.items.get(0).unwrap().size();
         assert_eq!(size.x as u32, 121);
         assert_eq!(size.y as u32, 121);
-        assert_eq!(*inventory.items_id.get(&0).unwrap(), 10);
-        assert_eq!(*inventory.items_id.get(&1).unwrap(), 22);
-        assert_eq!(*inventory.items_id.get(&2).unwrap(), 34);
+        assert_eq!(*inventory.items_id.get(&0).unwrap(), 1);
+        assert_eq!(*inventory.items_id.get(&1).unwrap(), 2);
+        assert_eq!(*inventory.items_id.get(&2).unwrap(), 3);
     }
 
     #[test]
@@ -129,23 +131,28 @@ mod tests {
         assert_eq!(inventory.get_item_id(Vector2f::new(0.0, 0.0)), None);
         assert_eq!(
             inventory.get_item_id(Vector2f::new(146.0, 98.0)).unwrap(),
-            10
+            1
         );
         assert_eq!(
             inventory.get_item_id(Vector2f::new(246.0, 122.0)).unwrap(),
-            22
+            2
         );
         assert_eq!(
             inventory.get_item_id(Vector2f::new(408.0, 162.0)).unwrap(),
-            34
+            3
+        );
+        assert_eq!(
+            inventory.get_item_id(Vector2f::new(250.0, 486.0)).unwrap(),
+            24
         );
     }
 
     fn load_textures() -> BTreeMap<u32, SfBox<Texture>> {
         let mut textures = BTreeMap::new();
-        textures.insert(10, Texture::new(16, 16).unwrap());
-        textures.insert(22, Texture::new(16, 16).unwrap());
-        textures.insert(34, Texture::new(16, 16).unwrap());
+
+        for i in 0..50 {
+            textures.insert(i + 1, Texture::new(16, 16).unwrap());
+        }
 
         textures
     }
