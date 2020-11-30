@@ -1,8 +1,6 @@
 mod inventory;
 
-use sfml::graphics::{
-    Color, IntRect, RectangleShape, RenderTarget, RenderWindow, Shape, Texture, Transformable,
-};
+use sfml::graphics::{Color, IntRect, RenderTarget, RenderWindow, Texture};
 use sfml::system::{Clock, SfBox, Vector2f};
 use sfml::window::mouse::Button;
 use sfml::window::{Event, Key, Style};
@@ -77,7 +75,7 @@ fn main() {
 
     // Create inventory
     let mut show_inventory = false;
-    let inventory = Inventory::new(window.size());
+    let inventory = Inventory::new(window.size(), &textures);
 
     // Create tile map
     let mut viewport_size = (15, 15).into();
