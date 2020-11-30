@@ -26,12 +26,14 @@ impl<'s> TileMapRenderer<'s> {
     /// - screen_size: the screen size in pixel
     /// - viewport_size: the expected viewport size (will affect number of tiles displayed on screen)
     /// - default_view: the default view to apply
+    /// - show_grid: should the grid be visible or not?
     pub fn new<T: Into<Vector2u>>(
         tile_map: &TileMap,
         screen_size: T,
         viewport_size: T,
         default_view: SfBox<View>,
         textures: &'s BTreeMap<u32, SfBox<Texture>>,
+        show_grid: bool,
     ) -> Self {
         let mut renderer = TileMapRenderer {
             layers: vec![],
@@ -41,7 +43,7 @@ impl<'s> TileMapRenderer<'s> {
             map_size: Default::default(),
             textures,
         };
-        renderer.update(tile_map, screen_size, viewport_size);
+        renderer.update(tile_map, screen_size, viewport_size, show_grid);
 
         renderer
     }
@@ -82,11 +84,13 @@ impl<'s> TileMapRenderer<'s> {
     /// - tile_map: the inner tile map details
     /// - screen_size: the screen size in pixel
     /// - viewport_size: the expected viewport size (will affect number of tiles displayed on screen)
+    /// - show_grid: should the grid be visible or not?
     pub fn update<T: Into<Vector2u>>(
         &mut self,
         tile_map: &TileMap,
         screen_size: T,
         viewport_size: T,
+        show_grid: bool,
     ) {
         let tile_map_size = tile_map.size();
         let screen_size = screen_size.into();
@@ -123,12 +127,6 @@ impl<'s> TileMapRenderer<'s> {
                         // todo error mngmt
                     }
 
-                    // Grid is only applied to layer 0
-                    if layer == 0 {
-                        tile.set_outline_color(Color::BLACK);
-                        tile.set_outline_thickness(1.0);
-                    }
-
                     tiles.push(tile);
                 }
             }
@@ -138,6 +136,20 @@ impl<'s> TileMapRenderer<'s> {
         self.tile_size = tile_size;
         self.layers = layers;
         self.map_size = tile_map_size;
+
+        self.show_grid(show_grid);
+    }
+
+    /// Toggle the grid visibility
+    pub fn show_grid(&mut self, show: bool) {
+        for tile in &mut self.layers[0] {
+            if show {
+                tile.set_outline_color(Color::BLACK);
+                tile.set_outline_thickness(1.0);
+            } else {
+                tile.set_outline_thickness(0.0);
+            }
+        }
     }
 }
 
@@ -159,7 +171,7 @@ impl<'s> Drawable for TileMapRenderer<'s> {
 
 #[cfg(test)]
 mod tests {
-    use sfml::graphics::{Texture, View};
+    use sfml::graphics::{Color, Shape, Texture, View};
     use sfml::system::{SfBox, Vector2f};
 
     use crate::tilemap::{TileMap, TileMapRenderer};
@@ -175,6 +187,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
+            true
         );
 
         assert_eq!(renderer.layers.len(), 1);
@@ -193,6 +206,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
+            true
         );
 
         assert_eq!(renderer.view.size(), (10.0, 10.0).into());
@@ -213,6 +227,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
+            true
         );
 
         assert_eq!(renderer.get_tile_position((0.0, 0.0)), Some((0, 0).into()));
@@ -248,16 +263,46 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
+            true
         );
 
         // Update renderer
         let tile_map = TileMap::new((10, 10), 1, 2);
-        renderer.update(&tile_map, (1920, 1080), (10, 10));
+        renderer.update(&tile_map, (1920, 1080), (10, 10), true);
 
         assert_eq!(renderer.layers.len(), 1);
         assert_eq!(renderer.layers.get(0).unwrap().len(), 100);
         assert_eq!(renderer.tile_size, 108.0); // We want a 10x10 viewport, therefore size will be 1080/10
         assert_eq!(renderer.map_size, (10, 10).into());
+    }
+
+    #[test]
+    fn test_tile_map_renderer_show_grid() {
+        let textures = load_textures();
+        let tile_map = TileMap::new((5, 5), 2, 2);
+        let mut renderer = TileMapRenderer::new(
+            &tile_map,
+            (1920, 1080),
+            (5, 5),
+            View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
+            &textures,
+            true
+        );
+
+        // By default grid is visible
+        let first_tile = renderer.layers[0].get(0).unwrap();
+        assert_eq!(first_tile.outline_thickness(), 1.0);
+        assert_eq!(first_tile.outline_color(), Color::BLACK);
+
+        // ... But only on layer 0
+        let first_tile = renderer.layers[1].get(0).unwrap();
+        assert_eq!(first_tile.outline_thickness(), 0.0);
+
+        // Disable grid
+        renderer.show_grid(false);
+
+        let first_tile = renderer.layers[0].get(0).unwrap();
+        assert_eq!(first_tile.outline_thickness(), 0.0);
     }
 
     fn load_textures() -> BTreeMap<u32, SfBox<Texture>> {
