@@ -160,11 +160,11 @@ fn main() {
 
     let mut tile_id = 2 as u32;
     let mut delta_clock = Clock::default();
+    let mut offset = Vector2f::default();
     while window.is_open() {
         let delta_time = delta_clock.restart();
-        let move_factor = 4000.0 * delta_time.as_seconds();
+        let move_factor = 2000.0 * delta_time.as_seconds();
 
-        let mut offset = Vector2f::default();
         while let Some(event) = window.poll_event() {
             if let Event::Closed = event {
                 window.close();
@@ -233,15 +233,18 @@ fn main() {
             // when the key is hold down
             if Key::Z.is_pressed() {
                 offset.y = -move_factor;
-            }
-            if Key::Q.is_pressed() {
-                offset.x = -move_factor;
-            }
-            if Key::S.is_pressed() {
+            } else if Key::S.is_pressed() {
                 offset.y = move_factor;
+            } else {
+                offset.y = 0.0;
             }
+
             if Key::D.is_pressed() {
                 offset.x = move_factor;
+            } else if Key::Q.is_pressed() {
+                offset.x = -move_factor;
+            } else {
+                offset.x = 0.0;
             }
         }
         renderer.move_(offset);
