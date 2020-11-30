@@ -139,7 +139,6 @@ fn main() {
 
                 if show_inventory {
                     if let Some(item_id) = inventory.get_item_id(world_pos) {
-                        println!("world pos x: {}, y: {}", world_pos.x, world_pos.y);
                         tile_id = item_id;
                         show_inventory = false; // hide inventory if an item has been selected
                     }

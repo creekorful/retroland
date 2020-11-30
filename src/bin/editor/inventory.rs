@@ -17,7 +17,7 @@ impl<'s> Inventory<'s> {
     ) -> Self {
         let screen_size = screen_size.into();
 
-        let bg_border = 50.0; // TODO make 50 something calculated
+        let bg_border = 50.0; // TODO make 50 something calculated?
         let mut background = RectangleShape::new();
         background.set_position((bg_border, bg_border));
         background.set_size(Vector2f::new(
@@ -26,8 +26,10 @@ impl<'s> Inventory<'s> {
         ));
         background.set_fill_color(Color::rgba(44, 62, 80, 240));
 
-        let item_border = 25.0; // TODO make 25 something calculated
-        let item_size = 100.0; // TODO make 100 something calculated
+        // Determinate item size by expecting a certain number of items per inventory row
+        let item_per_row = 15;
+        let item_size = background.size().x / item_per_row as f32;
+        let item_border = item_size / 4.0;
         let mut items = Vec::new();
         let mut x = 0;
         let mut y = 0;
