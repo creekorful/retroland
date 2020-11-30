@@ -63,6 +63,20 @@ impl<'s> Inventory<'s> {
             items_id,
         }
     }
+
+    /// Get the item located at given position
+    /// this will returns None if no item are present at this position
+    pub fn get_item_id<O: Into<Vector2f>>(&self, world_pos: O) -> Option<u32> {
+        let world_pos = world_pos.into();
+
+        for (i, item) in self.items.iter().enumerate() {
+            if item.global_bounds().contains(world_pos) {
+                return self.items_id.get(&(i as u32)).copied();
+            }
+        }
+
+        None
+    }
 }
 
 impl<'s> Drawable for Inventory<'s> {
@@ -85,10 +99,7 @@ mod tests {
 
     #[test]
     fn test_inventory_new() {
-        let mut textures = BTreeMap::new();
-        textures.insert(10, Texture::new(16, 16).unwrap());
-        textures.insert(22, Texture::new(16, 16).unwrap());
-        textures.insert(34, Texture::new(16, 16).unwrap());
+        let textures = load_textures();
 
         let inventory = Inventory::new((1920, 1080), &textures);
 
@@ -105,5 +116,35 @@ mod tests {
         assert_eq!(*inventory.items_id.get(&0).unwrap(), 10);
         assert_eq!(*inventory.items_id.get(&1).unwrap(), 22);
         assert_eq!(*inventory.items_id.get(&2).unwrap(), 34);
+    }
+
+    #[test]
+    fn test_inventory_get_item_id() {
+        let textures = load_textures();
+
+        let inventory = Inventory::new((1920, 1080), &textures);
+
+        assert_eq!(inventory.get_item_id(Vector2f::new(0.0, 0.0)), None);
+        assert_eq!(
+            inventory.get_item_id(Vector2f::new(146.0, 98.0)).unwrap(),
+            10
+        );
+        assert_eq!(
+            inventory.get_item_id(Vector2f::new(246.0, 122.0)).unwrap(),
+            22
+        );
+        assert_eq!(
+            inventory.get_item_id(Vector2f::new(408.0, 162.0)).unwrap(),
+            34
+        );
+    }
+
+    fn load_textures() -> BTreeMap<u32, SfBox<Texture>> {
+        let mut textures = BTreeMap::new();
+        textures.insert(10, Texture::new(16, 16).unwrap());
+        textures.insert(22, Texture::new(16, 16).unwrap());
+        textures.insert(34, Texture::new(16, 16).unwrap());
+
+        textures
     }
 }

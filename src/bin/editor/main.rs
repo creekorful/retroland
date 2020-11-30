@@ -111,16 +111,6 @@ fn main() {
                     Key::Subtract => {
                         viewport_size = (viewport_size.x + 1, viewport_size.y + 1).into();
                     }
-                    // Tile selection control
-                    Key::Num1 => {
-                        tile_id = 1;
-                    }
-                    Key::Num2 => {
-                        tile_id = 2;
-                    }
-                    Key::Num3 => {
-                        tile_id = 3;
-                    }
                     // Other controls
                     Key::S => {
                         if ctrl {
@@ -146,7 +136,14 @@ fn main() {
             // Manage click event
             if Button::Left.is_pressed() {
                 let world_pos = window.map_pixel_to_coords_current_view(window.mouse_position());
-                if let Some(map_position) = renderer.get_tile_position(world_pos) {
+
+                if show_inventory {
+                    if let Some(item_id) = inventory.get_item_id(world_pos) {
+                        println!("world pos x: {}, y: {}", world_pos.x, world_pos.y);
+                        tile_id = item_id;
+                        show_inventory = false; // hide inventory if an item has been selected
+                    }
+                } else if let Some(map_position) = renderer.get_tile_position(world_pos) {
                     tile_map.set_tile(map_position, 0, tile_id).unwrap();
 
                     // update the renderer
