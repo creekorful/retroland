@@ -43,6 +43,8 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    env:
+      DISPLAY: ':99'
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -58,6 +60,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install libsfml-dev libcsfml-dev
+
+      - name: Setup headless environment
+        run: |
+          Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
       - name: Run cargo test
         uses: actions-rs/cargo@v1
