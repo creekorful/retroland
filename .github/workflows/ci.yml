@@ -9,12 +9,6 @@ on:
       - '.github/workflows/ci.yml'
     branches:
       - '*'
-  pull_request:
-    paths:
-      - '**/**.rs'
-      - '.github/workflows/ci.yml'
-    branches:
-      - '*'
 
 jobs:
   check:
