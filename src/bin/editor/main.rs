@@ -19,30 +19,17 @@ fn load_textures<P: AsRef<Path>>(
 ) -> Result<BTreeMap<u32, SfBox<Texture>>, Box<dyn Error>> {
     let mut textures = BTreeMap::new();
 
-    textures.insert(
-        1,
-        Texture::from_file_with_rect(
-            &format!("{}/grass.png", assets_dir.as_ref().display()),
-            &IntRect::new(32, 0, 16, 16),
-        )
-        .ok_or_else(|| "unable to load texture".to_string())?,
-    );
-    textures.insert(
-        2,
-        Texture::from_file_with_rect(
-            &format!("{}/grass.png", assets_dir.as_ref().display()),
-            &IntRect::new(48, 0, 16, 16),
-        )
-        .ok_or_else(|| "unable to load texture".to_string())?,
-    );
-    textures.insert(
-        3,
-        Texture::from_file_with_rect(
-            &format!("{}/grass.png", assets_dir.as_ref().display()),
-            &IntRect::new(0, 0, 16, 16),
-        )
-        .ok_or_else(|| "unable to load texture".to_string())?,
-    );
+    // Load from grass.png
+    for i in 0..5 {
+        textures.insert(
+            i as u32,
+            Texture::from_file_with_rect(
+                &format!("{}/grass.png", assets_dir.as_ref().display()),
+                &IntRect::new(i * 16, 0, 16, 16),
+            )
+            .ok_or_else(|| "unable to load texture".to_string())?,
+        );
+    }
 
     Ok(textures)
 }
