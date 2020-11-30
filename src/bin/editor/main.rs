@@ -34,16 +34,18 @@ fn load_textures<P: AsRef<Path>>(
 
     // Start of layer 1 blocks
     idx = 50;
-    for i in 0..3 {
-        textures.insert(
-            idx,
-            Texture::from_file_with_rect(
-                &format!("{}/houses.png", assets_dir.as_ref().display()),
-                &IntRect::new(i * 16, 3 * 16, 16, 16),
-            )
-            .ok_or_else(|| "unable to load texture".to_string())?,
-        );
-        idx += 1;
+    for y in 2..4 {
+        for x in 0..3 {
+            textures.insert(
+                idx,
+                Texture::from_file_with_rect(
+                    &format!("{}/houses.png", assets_dir.as_ref().display()),
+                    &IntRect::new(x * 16, y * 16, 16, 16),
+                )
+                    .ok_or_else(|| "unable to load texture".to_string())?,
+            );
+            idx += 1;
+        }
     }
     for x in 0..2 {
         for y in 0..2 {
