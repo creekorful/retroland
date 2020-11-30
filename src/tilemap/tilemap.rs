@@ -3,6 +3,7 @@ use sfml::system::Vector2u;
 use std::convert::TryFrom;
 use std::fs::File;
 use std::io::Write;
+use std::net::TcpStream;
 
 #[derive(Debug, PartialEq)]
 pub enum TileMapError {
@@ -117,6 +118,14 @@ impl TryFrom<File> for TileMap {
     type Error = TileMapError;
 
     fn try_from(value: File) -> Result<Self, Self::Error> {
+        bincode::deserialize_from(value).map_err(|_| TileMapError::ReadError)
+    }
+}
+
+impl TryFrom<TcpStream> for TileMap {
+    type Error = TileMapError;
+
+    fn try_from(value: TcpStream) -> Result<Self, Self::Error> {
         bincode::deserialize_from(value).map_err(|_| TileMapError::ReadError)
     }
 }
