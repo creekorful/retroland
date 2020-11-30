@@ -3,7 +3,7 @@ mod inventory;
 use sfml::graphics::{Color, IntRect, RenderTarget, RenderWindow, Texture};
 use sfml::system::{Clock, SfBox, Vector2f};
 use sfml::window::mouse::Button;
-use sfml::window::{Event, Key, Style};
+use sfml::window::{Event, Key, Style, VideoMode};
 
 use crate::inventory::Inventory;
 use retroland::tilemap::{TileMap, TileMapRenderer};
@@ -54,7 +54,7 @@ fn main() {
     let map_height = args.get(3).map(|v| v.parse().unwrap()).unwrap_or(20);
 
     let mut window = RenderWindow::new(
-        (1920, 1080),
+        VideoMode::desktop_mode(),
         "Retroland Editor",
         Style::DEFAULT,
         &Default::default(),
