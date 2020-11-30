@@ -20,7 +20,7 @@ fn load_textures<P: AsRef<Path>>(
 ) -> Result<BTreeMap<u32, SfBox<Texture>>, Box<dyn Error>> {
     let mut textures = BTreeMap::new();
 
-    let mut idx = 0;
+    let mut idx = 1;
     for i in 0..5 {
         textures.insert(
             idx,

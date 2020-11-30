@@ -34,13 +34,13 @@ pub struct TileMap {
 
 impl TileMap {
     /// Create a new tile map of given size, with given number of layers
-    /// The initial layers will be fill with 1 (grass)
+    /// The initial layers will be fill with 2 (grass)
     /// the others will be fill with 0 (air)
     pub fn new<T: Into<Vector2u>>(size: T, nb_layers: u32) -> Self {
         let size = size.into();
         let mut tiles = Vec::with_capacity(nb_layers as usize);
 
-        tiles.push(vec![1; (size.x * size.y) as usize]);
+        tiles.push(vec![2; (size.x * size.y) as usize]);
 
         for _ in 1..nb_layers {
             tiles.push(vec![0; (size.x * size.y) as usize]);
