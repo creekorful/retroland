@@ -341,7 +341,6 @@ mod tests {
         // Disable grid
         renderer.set_show_grid(false);
 
-        // By default grid is visible
         assert!(!renderer.show_grid);
     }
 
