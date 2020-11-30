@@ -168,7 +168,7 @@ mod tests {
     #[test]
     fn test_tile_map_renderer_new() {
         let textures = load_textures();
-        let tile_map = TileMap::new((5, 5), 1);
+        let tile_map = TileMap::new((5, 5), 1, 2);
         let renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
@@ -186,7 +186,7 @@ mod tests {
     #[test]
     fn test_tile_map_renderer_move() {
         let textures = load_textures();
-        let tile_map = TileMap::new((5, 5), 1);
+        let tile_map = TileMap::new((5, 5), 1, 2);
         let mut renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
@@ -206,7 +206,7 @@ mod tests {
     #[test]
     fn test_tile_map_renderer_get_tile_position() {
         let textures = load_textures();
-        let tile_map = TileMap::new((5, 5), 1);
+        let tile_map = TileMap::new((5, 5), 1, 2);
         let mut renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
@@ -241,7 +241,7 @@ mod tests {
     #[test]
     fn test_tile_map_renderer_update() {
         let textures = load_textures();
-        let tile_map = TileMap::new((5, 5), 1);
+        let tile_map = TileMap::new((5, 5), 1, 2);
         let mut renderer = TileMapRenderer::new(
             &tile_map,
             (1920, 1080),
@@ -251,7 +251,7 @@ mod tests {
         );
 
         // Update renderer
-        let tile_map = TileMap::new((10, 10), 1);
+        let tile_map = TileMap::new((10, 10), 1, 2);
         renderer.update(&tile_map, (1920, 1080), (10, 10));
 
         assert_eq!(renderer.layers.len(), 1);

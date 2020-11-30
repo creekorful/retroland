@@ -34,13 +34,13 @@ pub struct TileMap {
 
 impl TileMap {
     /// Create a new tile map of given size, with given number of layers
-    /// The initial layers will be fill with 2 (grass)
+    /// The initial layers will be fill with provided default
     /// the others will be fill with 0 (air)
-    pub fn new<T: Into<Vector2u>>(size: T, nb_layers: u32) -> Self {
+    pub fn new<T: Into<Vector2u>>(size: T, nb_layers: u32, default: u32) -> Self {
         let size = size.into();
         let mut tiles = Vec::with_capacity(nb_layers as usize);
 
-        tiles.push(vec![2; (size.x * size.y) as usize]);
+        tiles.push(vec![default; (size.x * size.y) as usize]);
 
         for _ in 1..nb_layers {
             tiles.push(vec![0; (size.x * size.y) as usize]);
@@ -127,7 +127,7 @@ mod tests {
 
     #[test]
     fn test_tile_map_new() {
-        let tile_map = TileMap::new((20, 10), 2);
+        let tile_map = TileMap::new((20, 10), 2, 2);
 
         assert_eq!(tile_map.tiles.len(), 2);
         assert_eq!(tile_map.size.x, 20);
@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_tile_map_get_tile() {
-        let tile_map = TileMap::new((20, 10), 2);
+        let tile_map = TileMap::new((20, 10), 2, 2);
 
         for layer in 0..2 {
             for y in 0..10 {
@@ -167,7 +167,7 @@ mod tests {
 
     #[test]
     fn test_tile_map_set_tile() {
-        let mut tile_map = TileMap::new((6, 5), 2);
+        let mut tile_map = TileMap::new((6, 5), 2, 2);
 
         assert!(tile_map.set_tile((0, 0), 0, 12).is_ok());
         assert_eq!(tile_map.tiles[0][0], 12);
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn test_tile_map_compute_index() {
-        let tile_map = TileMap::new((6, 5), 2);
+        let tile_map = TileMap::new((6, 5), 2, 2);
 
         assert_eq!(tile_map.compute_index((0, 0)).unwrap(), 0);
         assert_eq!(tile_map.compute_index((1, 1)).unwrap(), 7);
@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn test_tile_map_size() {
-        let tile_map = TileMap::new((20, 10), 2);
+        let tile_map = TileMap::new((20, 10), 2, 2);
 
         let size = tile_map.size();
         assert_eq!(size.x, 20);
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn test_tile_nb_layers() {
-        let tile_map = TileMap::new((20, 10), 2);
+        let tile_map = TileMap::new((20, 10), 2, 2);
 
         assert_eq!(tile_map.nb_layers, 2);
         assert_eq!(tile_map.nb_layers(), 2);
