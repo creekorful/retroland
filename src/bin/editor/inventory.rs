@@ -33,10 +33,9 @@ impl<'s> Inventory<'s> {
         let mut items = Vec::new();
         let mut x = 0;
         let mut y = 0;
-        let mut i = 0;
 
         let mut items_id = BTreeMap::new();
-        for (id, texture) in textures {
+        for (i, (id, texture)) in textures.iter().enumerate() {
             // Determinate if x position will overlaps background and therefore
             // need to do a new line
             if x as f32 * (item_size + item_border) + item_border + item_size
@@ -55,8 +54,7 @@ impl<'s> Inventory<'s> {
             item.set_texture(texture, true);
             items.push(item);
 
-            items_id.insert(i, *id);
-            i += 1;
+            items_id.insert(i as u32, *id);
 
             x += 1;
         }

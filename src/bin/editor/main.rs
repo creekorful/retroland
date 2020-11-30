@@ -13,7 +13,6 @@ use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use std::process::id;
 
 fn load_textures<P: AsRef<Path>>(
     assets_dir: P,

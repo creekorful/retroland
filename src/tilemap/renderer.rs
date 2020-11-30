@@ -262,7 +262,7 @@ mod tests {
 
     fn load_textures() -> BTreeMap<u32, SfBox<Texture>> {
         let mut textures = BTreeMap::new();
-        textures.insert(1, Texture::new(16, 16).unwrap());
+        textures.insert(2, Texture::new(16, 16).unwrap());
         textures
     }
 }

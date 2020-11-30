@@ -136,9 +136,9 @@ mod tests {
         assert_eq!(tile_map.tiles.get(0).unwrap().len(), 20 * 10);
         assert_eq!(tile_map.tiles.get(1).unwrap().len(), 20 * 10);
 
-        // Make sure first layer is fill with 1
+        // Make sure first layer is fill with 2
         for i in 0..200 {
-            assert_eq!(tile_map.tiles[0][i], 1);
+            assert_eq!(tile_map.tiles[0][i], 2);
         }
 
         // Make sure second layer is fill with 0
@@ -154,7 +154,7 @@ mod tests {
         for layer in 0..2 {
             for y in 0..10 {
                 for x in 0..20 {
-                    let expected_value = if layer == 0 { 1 } else { 0 };
+                    let expected_value = if layer == 0 { 2 } else { 0 };
                     assert_eq!(tile_map.get_tile((x, y), layer).unwrap(), expected_value);
                 }
             }
