@@ -220,17 +220,14 @@ fn main() {
                     }
                 } else if let Some(map_position) = renderer.get_tile_position(world_pos) {
                     let layer = get_tile_layer(tile_id);
-                    tile_map
-                        .set_tile(map_position, get_tile_layer(tile_id), tile_id)
-                        .unwrap();
+                    tile_map.set_tile(map_position, layer, tile_id).unwrap();
+                    renderer.set_tile(map_position, layer, tile_id);
 
                     if layer == 0 {
                         // If layer is 0 then reset all tile layers on the position
                         tile_map.set_tile(map_position, 1, 0).unwrap();
+                        renderer.set_tile(map_position, 1, 0);
                     }
-
-                    // update the renderer
-                    renderer.update(&tile_map, window.size(), viewport_size, show_grid);
                 }
             }
 

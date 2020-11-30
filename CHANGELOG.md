@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use changelog to track changes.
 
+## Changed
+
+- [#4](https://github.com/creekorful/retroland/issues/4) Improve drawing for large map.
+
 ## [0.1.0] - 2020-11-30
 
 Initial release

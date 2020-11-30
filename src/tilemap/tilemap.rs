@@ -29,27 +29,27 @@ pub struct TileMap {
     #[serde(with = "Vector2uDef")]
     size: Vector2u,
     /// The number of layers
-    nb_layers: u32,
+    layer_count: u32,
 }
 
 impl TileMap {
     /// Create a new tile map of given size, with given number of layers
     /// The initial layers will be fill with provided default
     /// the others will be fill with 0 (air)
-    pub fn new<T: Into<Vector2u>>(size: T, nb_layers: u32, default: u32) -> Self {
+    pub fn new<T: Into<Vector2u>>(size: T, layer_count: u32, default: u32) -> Self {
         let size = size.into();
-        let mut tiles = Vec::with_capacity(nb_layers as usize);
+        let mut tiles = Vec::with_capacity(layer_count as usize);
 
         tiles.push(vec![default; (size.x * size.y) as usize]);
 
-        for _ in 1..nb_layers {
+        for _ in 1..layer_count {
             tiles.push(vec![0; (size.x * size.y) as usize]);
         }
 
         TileMap {
             tiles,
             size,
-            nb_layers,
+            layer_count,
         }
     }
 
@@ -88,8 +88,8 @@ impl TileMap {
     }
 
     /// Retrieve the number of layers
-    pub fn nb_layers(&self) -> u32 {
-        self.nb_layers
+    pub fn layer_count(&self) -> u32 {
+        self.layer_count
     }
 
     /// Write the tile map to given writer
@@ -132,7 +132,7 @@ mod tests {
         assert_eq!(tile_map.tiles.len(), 2);
         assert_eq!(tile_map.size.x, 20);
         assert_eq!(tile_map.size.y, 10);
-        assert_eq!(tile_map.nb_layers, 2);
+        assert_eq!(tile_map.layer_count, 2);
         assert_eq!(tile_map.tiles.get(0).unwrap().len(), 20 * 10);
         assert_eq!(tile_map.tiles.get(1).unwrap().len(), 20 * 10);
 
@@ -215,10 +215,10 @@ mod tests {
     }
 
     #[test]
-    fn test_tile_nb_layers() {
+    fn test_tile_layer_count() {
         let tile_map = TileMap::new((20, 10), 2, 2);
 
-        assert_eq!(tile_map.nb_layers, 2);
-        assert_eq!(tile_map.nb_layers(), 2);
+        assert_eq!(tile_map.layer_count, 2);
+        assert_eq!(tile_map.layer_count(), 2);
     }
 }
