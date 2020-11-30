@@ -1,16 +1,20 @@
 use sfml::graphics::{
-    Color, Drawable, RectangleShape, RenderStates, RenderTarget, Shape, Texture, Transformable,
-    View,
+    Color, Drawable, PrimitiveType, RenderStates, RenderTarget, Sprite, Texture, Transformable,
+    VertexArray, View,
 };
 use sfml::system::{SfBox, Vector2f, Vector2u};
 
 use crate::tilemap::TileMap;
 use std::collections::BTreeMap;
-use std::ops::Sub;
+use std::ops::{IndexMut, Sub};
+
+// TODO error management
 
 /// Tile map renderer is used to render a tile map on the screen
 pub struct TileMapRenderer<'s> {
-    layers: Vec<Vec<RectangleShape<'s>>>,
+    layers: Vec<Vec<Sprite<'s>>>,
+    grid: Vec<VertexArray>,
+    show_grid: bool,
     view: SfBox<View>,
     original_view_center: Vector2f,
     tile_size: f32,
@@ -37,13 +41,15 @@ impl<'s> TileMapRenderer<'s> {
     ) -> Self {
         let mut renderer = TileMapRenderer {
             layers: vec![],
+            grid: vec![],
+            show_grid,
             original_view_center: default_view.center(),
             view: default_view,
             tile_size: 0.0,
             map_size: Default::default(),
             textures,
         };
-        renderer.update(tile_map, screen_size, viewport_size, show_grid);
+        renderer.update(tile_map, screen_size, viewport_size);
 
         renderer
     }
@@ -84,19 +90,17 @@ impl<'s> TileMapRenderer<'s> {
     /// - tile_map: the inner tile map details
     /// - screen_size: the screen size in pixel
     /// - viewport_size: the expected viewport size (will affect number of tiles displayed on screen)
-    /// - show_grid: should the grid be visible or not?
     pub fn update<T: Into<Vector2u>>(
         &mut self,
         tile_map: &TileMap,
         screen_size: T,
         viewport_size: T,
-        show_grid: bool,
     ) {
         let tile_map_size = tile_map.size();
         let screen_size = screen_size.into();
         let viewport_size = viewport_size.into();
 
-        let mut layers = Vec::with_capacity(tile_map.nb_layers() as usize);
+        let mut layers = Vec::with_capacity(tile_map.layer_count() as usize);
 
         // Determinate tile size to fix them on whole screen
         // this algorithm will try to display at least the expected viewport size
@@ -109,22 +113,21 @@ impl<'s> TileMapRenderer<'s> {
             tile_height
         } as f32;
 
-        for layer in 0..tile_map.nb_layers() {
+        for layer in 0..tile_map.layer_count() {
             let mut tiles = Vec::with_capacity((tile_map_size.x * tile_map_size.y) as usize);
             for y in 0..tile_map_size.y {
                 for x in 0..tile_map_size.x {
-                    let mut tile = RectangleShape::new();
-                    tile.set_size((tile_size, tile_size));
+                    let mut tile = Sprite::new();
+                    tile.set_scale(((1.0 / 16.0) * tile_size, (1.0 / 16.0) * tile_size));
                     tile.set_position((x as f32 * tile_size, y as f32 * tile_size));
 
                     let tile_id = tile_map.get_tile((x, y), layer).unwrap();
 
                     // Tile_id == 0 is transparent
                     if tile_id == 0 {
-                        tile.set_fill_color(Color::TRANSPARENT);
+                        tile.set_color(Color::TRANSPARENT);
                     } else {
                         tile.set_texture(self.textures.get(&tile_id).unwrap(), true);
-                        // todo error mngmt
                     }
 
                     tiles.push(tile);
@@ -133,23 +136,61 @@ impl<'s> TileMapRenderer<'s> {
             layers.push(tiles);
         }
 
-        self.tile_size = tile_size;
-        self.layers = layers;
-        self.map_size = tile_map_size;
+        // Create the grid
+        let mut grid = Vec::new();
+        for y in 0..tile_map_size.y {
+            let mut line = VertexArray::new(PrimitiveType::Lines, 2);
+            line.index_mut(0).position = Vector2f::new(0.0, y as f32 * tile_size);
+            line.index_mut(0).color = Color::BLACK;
+            line.index_mut(1).position =
+                Vector2f::new((tile_map_size.x) as f32 * tile_size, y as f32 * tile_size);
+            line.index_mut(1).color = Color::BLACK;
+            grid.push(line);
+        }
+        for x in 0..tile_map_size.x {
+            let mut line = VertexArray::new(PrimitiveType::Lines, 2);
+            line.index_mut(0).position = Vector2f::new(x as f32 * tile_size, 0.0);
+            line.index_mut(0).color = Color::BLACK;
+            line.index_mut(1).position =
+                Vector2f::new(x as f32 * tile_size, (tile_map_size.y) as f32 * tile_size);
+            line.index_mut(1).color = Color::BLACK;
+            grid.push(line);
+        }
 
-        self.show_grid(show_grid);
+        self.layers = layers;
+        self.grid = grid;
+        self.map_size = tile_map_size;
+        self.tile_size = tile_size;
+    }
+
+    /// Set the tile at given pos
+    pub fn set_tile<T: Into<Vector2u>>(&mut self, position: T, layer: u32, tile: u32) {
+        let position = position.into();
+        let index = (position.x + position.y * self.map_size.x) as usize;
+
+        let sprite = self
+            .layers
+            .get_mut(layer as usize)
+            .unwrap()
+            .get_mut(index)
+            .unwrap();
+
+        if tile == 0 {
+            sprite.set_color(Color::TRANSPARENT);
+        } else {
+            sprite.set_color(Color::WHITE);
+            sprite.set_texture(&self.textures.get(&tile).unwrap(), true);
+        }
     }
 
     /// Toggle the grid visibility
-    pub fn show_grid(&mut self, show: bool) {
-        for tile in &mut self.layers[0] {
-            if show {
-                tile.set_outline_color(Color::BLACK);
-                tile.set_outline_thickness(1.0);
-            } else {
-                tile.set_outline_thickness(0.0);
-            }
-        }
+    pub fn set_show_grid(&mut self, show: bool) {
+        self.show_grid = show
+    }
+
+    /// Returns the grid visibility
+    pub fn show_grid(&self) -> bool {
+        self.show_grid
     }
 }
 
@@ -165,13 +206,18 @@ impl<'s> Drawable for TileMapRenderer<'s> {
                 target.draw_with_renderstates(tile, states);
             }
         }
+        if self.show_grid {
+            for line in &self.grid {
+                target.draw_vertex_array(line, states);
+            }
+        }
         target.set_view(&target.default_view().to_owned());
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use sfml::graphics::{Color, Shape, Texture, View};
+    use sfml::graphics::{Texture, View};
     use sfml::system::{SfBox, Vector2f};
 
     use crate::tilemap::{TileMap, TileMapRenderer};
@@ -268,7 +314,7 @@ mod tests {
 
         // Update renderer
         let tile_map = TileMap::new((10, 10), 1, 2);
-        renderer.update(&tile_map, (1920, 1080), (10, 10), true);
+        renderer.update(&tile_map, (1920, 1080), (10, 10));
 
         assert_eq!(renderer.layers.len(), 1);
         assert_eq!(renderer.layers.get(0).unwrap().len(), 100);
@@ -277,7 +323,7 @@ mod tests {
     }
 
     #[test]
-    fn test_tile_map_renderer_show_grid() {
+    fn test_tile_map_renderer_set_show_grid() {
         let textures = load_textures();
         let tile_map = TileMap::new((5, 5), 2, 2);
         let mut renderer = TileMapRenderer::new(
@@ -290,19 +336,12 @@ mod tests {
         );
 
         // By default grid is visible
-        let first_tile = renderer.layers[0].get(0).unwrap();
-        assert_eq!(first_tile.outline_thickness(), 1.0);
-        assert_eq!(first_tile.outline_color(), Color::BLACK);
-
-        // ... But only on layer 0
-        let first_tile = renderer.layers[1].get(0).unwrap();
-        assert_eq!(first_tile.outline_thickness(), 0.0);
+        assert!(renderer.show_grid);
 
         // Disable grid
-        renderer.show_grid(false);
+        renderer.set_show_grid(false);
 
-        let first_tile = renderer.layers[0].get(0).unwrap();
-        assert_eq!(first_tile.outline_thickness(), 0.0);
+        assert!(!renderer.show_grid);
     }
 
     fn load_textures() -> BTreeMap<u32, SfBox<Texture>> {

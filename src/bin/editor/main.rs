@@ -148,7 +148,6 @@ fn main() {
     let inventory = Inventory::new(window.size(), &textures);
 
     // Create tile map
-    let mut show_grid = true;
     let mut viewport_size = (15, 15).into();
     let mut renderer = TileMapRenderer::new(
         &tile_map,
@@ -156,7 +155,7 @@ fn main() {
         viewport_size,
         window.default_view().to_owned(),
         &textures,
-        show_grid,
+        true,
     );
 
     let mut tile_id = 2 as u32;
@@ -197,15 +196,14 @@ fn main() {
                         show_inventory = !show_inventory;
                     }
                     Key::X => {
-                        show_grid = !show_grid;
-                        renderer.show_grid(show_grid);
+                        renderer.set_show_grid(!renderer.show_grid());
                     }
                     _ => {}
                 }
 
                 // Re create the renderer with updated details
                 if code == Key::Add || code == Key::Subtract {
-                    renderer.update(&tile_map, window.size(), viewport_size, show_grid);
+                    renderer.update(&tile_map, window.size(), viewport_size);
                 }
             }
 
@@ -220,17 +218,14 @@ fn main() {
                     }
                 } else if let Some(map_position) = renderer.get_tile_position(world_pos) {
                     let layer = get_tile_layer(tile_id);
-                    tile_map
-                        .set_tile(map_position, get_tile_layer(tile_id), tile_id)
-                        .unwrap();
+                    tile_map.set_tile(map_position, layer, tile_id).unwrap();
+                    renderer.set_tile(map_position, layer, tile_id);
 
                     if layer == 0 {
                         // If layer is 0 then reset all tile layers on the position
                         tile_map.set_tile(map_position, 1, 0).unwrap();
+                        renderer.set_tile(map_position, 1, 0);
                     }
-
-                    // update the renderer
-                    renderer.update(&tile_map, window.size(), viewport_size, show_grid);
                 }
             }
 
