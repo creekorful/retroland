@@ -187,7 +187,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
-            true
+            true,
         );
 
         assert_eq!(renderer.layers.len(), 1);
@@ -206,7 +206,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
-            true
+            true,
         );
 
         assert_eq!(renderer.view.size(), (10.0, 10.0).into());
@@ -227,7 +227,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
-            true
+            true,
         );
 
         assert_eq!(renderer.get_tile_position((0.0, 0.0)), Some((0, 0).into()));
@@ -263,7 +263,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
-            true
+            true,
         );
 
         // Update renderer
@@ -286,7 +286,7 @@ mod tests {
             (5, 5),
             View::new((0.0, 0.0).into(), (10.0, 10.0).into()),
             &textures,
-            true
+            true,
         );
 
         // By default grid is visible
