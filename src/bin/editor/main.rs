@@ -13,6 +13,7 @@ use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
+use std::process::id;
 
 fn load_textures<P: AsRef<Path>>(
     assets_dir: P,
@@ -32,7 +33,7 @@ fn load_textures<P: AsRef<Path>>(
         idx += 1;
     }
 
-    // Start of layer 1 block
+    // Start of layer 1 blocks
     idx = 50;
     for i in 0..3 {
         textures.insert(
@@ -44,6 +45,19 @@ fn load_textures<P: AsRef<Path>>(
             .ok_or_else(|| "unable to load texture".to_string())?,
         );
         idx += 1;
+    }
+    for x in 0..2 {
+        for y in 0..2 {
+            textures.insert(
+                idx,
+                Texture::from_file_with_rect(
+                    &format!("{}/towers.png", assets_dir.as_ref().display()),
+                    &IntRect::new(x * 16, y * 16 + 16, 16, 16),
+                )
+                .ok_or_else(|| "unable to load texture".to_string())?,
+            );
+            idx += 1;
+        }
     }
 
     Ok(textures)
